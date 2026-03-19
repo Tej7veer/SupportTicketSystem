@@ -34,15 +34,21 @@ public class TicketDetailForm : Form
         BackColor = Theme.Background;
         AutoScroll = true;
 
-        var btnBack = new FlatButton
+        var btnBack = new Button
         {
             Text = "← Back",
             Location = new Point(24, 20),
             Size = new Size(100, 32),
-            IsOutline = true,
-            AccentColor = Theme.TextSecondary,
-            Font = Theme.FontSmall
+            Font = Theme.FontSmall,
+            FlatStyle = FlatStyle.Flat,
+            BackColor = Theme.SurfaceLight,
+            ForeColor = Theme.TextPrimary,
+            Cursor = Cursors.Hand
         };
+        btnBack.FlatAppearance.BorderColor = Theme.BorderColor;
+        btnBack.FlatAppearance.BorderSize = 1;
+        btnBack.FlatAppearance.MouseOverBackColor = Theme.BorderColor;
+        btnBack.FlatAppearance.MouseDownBackColor = Theme.TextMuted;
         btnBack.Click += (_, _) => _parent.LoadTicketList();
         Controls.Add(btnBack);
 

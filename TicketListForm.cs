@@ -24,28 +24,26 @@ public class TicketListForm : Form
     {
         BackColor = Theme.Background;
 
-        // Header
-        var lblTitle = new Label
+        // ── Header ─────────────────────────────────────────────────
+        Controls.Add(new Label
         {
             Text = AppSession.IsAdmin ? "All Support Tickets" : "My Tickets",
             Location = new Point(30, 24),
             Size = new Size(400, 36),
             Font = Theme.FontTitle,
             ForeColor = Theme.TextPrimary
-        };
-        Controls.Add(lblTitle);
+        });
 
-        var lblSub = new Label
+        Controls.Add(new Label
         {
             Text = AppSession.IsAdmin
                         ? "Manage and track all customer tickets"
                         : "View and track your submitted tickets",
-            Location = new Point(24, 62),
+            Location = new Point(30, 62),
             Size = new Size(400, 20),
             Font = Theme.FontSmall,
             ForeColor = Theme.TextSecondary
-        };
-        Controls.Add(lblSub);
+        });
 
         _txtSearch = new DarkTextBox
         {
@@ -80,7 +78,7 @@ public class TicketListForm : Form
             Controls.Add(btnNew);
         }
 
-        // Grid
+        // ── Grid ───────────────────────────────────────────────────
         _grid = new DataGridView
         {
             Location = new Point(30, 100),
@@ -100,10 +98,14 @@ public class TicketListForm : Form
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
             Font = Theme.FontBody,
             ColumnHeadersHeight = 40,
-            Cursor = Cursors.Hand
+            Cursor = Cursors.Hand,
+
+            // ← disable built-in visual styles so our colors apply
+            EnableHeadersVisualStyles = false
         };
         _grid.RowTemplate.Height = 44;
 
+        // ── Column header style ────────────────────────────────────
         _grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
         {
             BackColor = Theme.SurfaceLight,
@@ -113,11 +115,13 @@ public class TicketListForm : Form
             SelectionForeColor = Theme.TextSecondary,
             Padding = new Padding(8, 0, 0, 0)
         };
+
+        // ── Row styles — NO selection highlight ───────────────────
         _grid.DefaultCellStyle = new DataGridViewCellStyle
         {
             BackColor = Theme.Surface,
             ForeColor = Theme.TextPrimary,
-            SelectionBackColor = Color.FromArgb(30, Theme.Primary),
+            SelectionBackColor = Theme.Surface,       // ← same as normal
             SelectionForeColor = Theme.TextPrimary,
             Padding = new Padding(8, 0, 0, 0)
         };
@@ -125,11 +129,12 @@ public class TicketListForm : Form
         {
             BackColor = Theme.SurfaceLight,
             ForeColor = Theme.TextPrimary,
-            SelectionBackColor = Color.FromArgb(30, Theme.Primary),
+            SelectionBackColor = Theme.SurfaceLight,  // ← same as normal
             SelectionForeColor = Theme.TextPrimary,
             Padding = new Padding(8, 0, 0, 0)
         };
 
+        // ── Columns ────────────────────────────────────────────────
         _grid.Columns.AddRange(
             new DataGridViewTextBoxColumn { Name = "TicketNumber", HeaderText = "Ticket #", FillWeight = 15 },
             new DataGridViewTextBoxColumn { Name = "Subject", HeaderText = "Subject", FillWeight = 30 },
@@ -149,6 +154,7 @@ public class TicketListForm : Form
             });
         }
 
+        // ── View Details button — consistent across ALL rows ───────
         _grid.Columns.Add(new DataGridViewButtonColumn
         {
             Name = "View",
@@ -161,7 +167,10 @@ public class TicketListForm : Form
                 BackColor = Theme.Primary,
                 ForeColor = Theme.Background,
                 Font = Theme.FontSmall,
-                Alignment = DataGridViewContentAlignment.MiddleCenter
+                Alignment = DataGridViewContentAlignment.MiddleCenter,
+                SelectionBackColor = Theme.Primary,      // ← same on select
+                SelectionForeColor = Theme.Background,   // ← same on select
+                Padding = new Padding(0)
             }
         });
 
@@ -169,10 +178,11 @@ public class TicketListForm : Form
         _grid.CellFormatting += Grid_CellFormatting;
         Controls.Add(_grid);
 
+        // ── Status label ───────────────────────────────────────────
         _lblStatus = new Label
         {
             Text = "Loading tickets...",
-            Location = new Point(24, 300),
+            Location = new Point(30, 300),
             Size = new Size(400, 30),
             ForeColor = Theme.TextSecondary,
             Font = Theme.FontBody
@@ -236,30 +246,52 @@ public class TicketListForm : Form
             var rowIndex = _grid.Rows.Add(values.ToArray());
             _grid.Rows[rowIndex].Tag = t.Id;
         }
+
+        // Clear selection after populating so no row is highlighted
+        _grid.ClearSelection();
     }
 
     private void Grid_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
     {
         if (e.RowIndex < 0) return;
+
         var colName = _grid.Columns[e.ColumnIndex].Name;
         var val = e.Value?.ToString() ?? "";
 
+        // Grey out closed ticket rows
+        var status = _grid.Rows[e.RowIndex].Cells["Status"].Value?.ToString();
+        if (status == "Closed")
+        {
+            e.CellStyle.ForeColor = Theme.TextMuted;
+        }
+
+        // Priority color
         if (colName == "Priority")
         {
             e.CellStyle.ForeColor = Theme.PriorityColor(val);
             e.CellStyle.Font = new Font("Segoe UI", 9f, FontStyle.Bold);
         }
+        // Status color
         else if (colName == "Status")
         {
             var raw = val == "In Progress" ? "InProgress" : val;
             e.CellStyle.ForeColor = Theme.StatusColor(raw);
             e.CellStyle.Font = new Font("Segoe UI", 9f, FontStyle.Bold);
         }
+        // View button — always teal regardless of row selection
+        else if (colName == "View")
+        {
+            e.CellStyle.BackColor = Theme.Primary;
+            e.CellStyle.ForeColor = Theme.Background;
+            e.CellStyle.SelectionBackColor = Theme.Primary;
+            e.CellStyle.SelectionForeColor = Theme.Background;
+        }
     }
 
     private void Grid_CellClick(object? sender, DataGridViewCellEventArgs e)
     {
         if (e.RowIndex < 0) return;
+        _grid.ClearSelection();  // ← deselect immediately after click
         var id = (int)_grid.Rows[e.RowIndex].Tag!;
         _parent.LoadTicketDetail(id);
     }

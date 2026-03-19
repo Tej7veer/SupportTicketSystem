@@ -130,14 +130,21 @@ public class CreateTicketForm : Form
         _btnSubmit.Click += BtnSubmit_Click;
         card.Controls.Add(_btnSubmit);
 
-        var btnCancel = new FlatButton
+        var btnCancel = new Button
         {
             Text = "Cancel",
             Location = new Point(182, fy),
             Size = new Size(100, 40),
-            IsOutline = true,
-            AccentColor = Theme.TextSecondary
+            Font = Theme.FontBody,
+            FlatStyle = FlatStyle.Flat,
+            BackColor = Theme.SurfaceLight,
+            ForeColor = Theme.TextPrimary,
+            Cursor = Cursors.Hand
         };
+        btnCancel.FlatAppearance.BorderColor = Theme.BorderColor;
+        btnCancel.FlatAppearance.BorderSize = 1;
+        btnCancel.FlatAppearance.MouseOverBackColor = Theme.BorderColor;
+        btnCancel.FlatAppearance.MouseDownBackColor = Theme.TextMuted;
         btnCancel.Click += (_, _) => _parent.LoadTicketList();
         card.Controls.Add(btnCancel);
 
