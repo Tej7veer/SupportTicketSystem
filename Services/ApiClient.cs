@@ -8,8 +8,7 @@ namespace SupportTicketDesktop.Services;
 public class ApiClient
 {
     private static readonly HttpClient _http = new();
-    private const string BaseUrl = "http://localhost:5000/api";
-
+    private const string BaseUrl = "https://supportticketapi-production.up.railway.app/api";
     public static void SetToken(string token)
     {
         _http.DefaultRequestHeaders.Authorization =
